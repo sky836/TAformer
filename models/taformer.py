@@ -183,9 +183,16 @@ class Model(nn.Module):
         self.decoder = Decoder(configs.d_layers, configs.label_patch_size, configs.time_channel,
                                configs.encoder_embed_dim, configs.decoder_embed_dim, configs.target_channel, configs)
         encoder_patches = configs.seq_len // configs.patch_size
-        self.encoder_output = nn.Linear(encoder_patches * configs.encoder_embed_dim, configs.pred_len)
+
+        # ========================predict special======================================================
+        self.encoder_outputs = nn.ModuleList()
+        self.decoder_outputs = nn.ModuleList()
+        self.pred_len = configs.pred_len
         decoder_patches = configs.pred_len // configs.label_patch_size
-        self.decoder_output = nn.Linear(decoder_patches * configs.decoder_embed_dim, configs.pred_len)
+        for i in range(configs.n_nodes):
+            self.encoder_outputs.append(nn.Linear(encoder_patches * configs.encoder_embed_dim, configs.pred_len))
+            self.decoder_outputs.append(nn.Linear(decoder_patches * configs.decoder_embed_dim, configs.pred_len))
+        # ========================predict special======================================================
 
         self.fuse_weight = torch.nn.Parameter(torch.FloatTensor(1), requires_grad=True)
         self.fuse_weight.data.fill_(0.5)
@@ -216,10 +223,16 @@ class Model(nn.Module):
         encoder_target_output, decoder_target_output = \
             encoder_target_output.reshape(batch_size, n_nodes, -1), \
             decoder_target_output.reshape(batch_size, n_nodes, -1)
+        # =============================predicts===========================================
+        device = encoder_target_output.device
         # [batch_size, n_nodes, pred_len]
-        encoder_target_output = self.encoder_output(encoder_target_output)
-        decoder_target_output = self.decoder_output(decoder_target_output)
-        target_output = self.fuse_weight * encoder_target_output + (1 - self.fuse_weight) * decoder_target_output
+        encoder_outputs = torch.zeros(batch_size, n_nodes, self.pred_len).to(device)
+        decoder_outputs = torch.zeros(batch_size, n_nodes, self.pred_len).to(device)
+        for i in range(n_nodes):
+            encoder_outputs[:, i, :] = self.encoder_outputs[i](encoder_target_output[:, i, :]).squeeze(1)
+            decoder_outputs[:, i, :] = self.decoder_outputs[i](decoder_target_output[:, i, :]).squeeze(1)
+        # =============================predicts===========================================
+        target_output = self.fuse_weight * encoder_outputs + (1 - self.fuse_weight) * decoder_outputs
         target_output = target_output.transpose(1, 2)
 
         return encoder_time_attn_scores, encoder_target_attn_scores, encoder_merge_attn_scores, decoder_self_attn_score, cross_attn, target_output
