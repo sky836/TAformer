@@ -98,7 +98,7 @@ class Exp_Forecast(Exp_Basic):
         # path = os.path.join(self.args.checkpoints, setting)
         # if not os.path.exists(path):
         #     os.makedirs(path)
-        path = '/kaggle/working/'  # 使用kaggle跑代码的路径
+        path = '/mnt/workspace/'  # 使用阿里天池跑代码的路径
 
         time_now = time.time()
 
@@ -119,7 +119,7 @@ class Exp_Forecast(Exp_Basic):
         # tensorboard_path = os.path.join('./runs/{}/'.format(setting))
         # if not os.path.exists(tensorboard_path):
         #     os.makedirs(tensorboard_path)
-        tensorboard_path = '/kaggle/working/'  # 使用kaggle跑实验时的路径
+        tensorboard_path = '/mnt/workspace/'  # 使用阿里天池跑实验时的路径
         writer = SummaryWriter(log_dir=tensorboard_path)
 
         step = 0
