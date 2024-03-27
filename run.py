@@ -32,6 +32,7 @@ if __name__ == '__main__':
 
     # data loader
     parser.add_argument('--data', type=str, required=False, default='METR-LA', help='dataset type')
+    parser.add_argument('--n_nodes', type=int, required=False, default=207, help='the nodes of dataset')
     parser.add_argument('--root_path', type=str, default='./datasets/raw_data/', help='root path of the data file')
     parser.add_argument('--data_path', type=str, default='METR-LA/METR-LA.h5', help='data file')
     parser.add_argument('--freq', type=str, default='t',
@@ -159,7 +160,7 @@ if __name__ == '__main__':
             formatted_string,
             ii)
 
-        setting = 'GWNET_METR-LA_sl12_pl12_el2_dl2_eh4_dh8_de96_ee96_2024_03_07_11_58_0'
+        setting = 'TAformer_seqlen288'
 
         if args.task_name == 'STEP':
             exp = Exp(args=args, cfg=cfg)  # set experiments
