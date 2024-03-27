@@ -226,6 +226,7 @@ class Exp_Forecast(Exp_Basic):
             writer.add_scalar(scalar_value=train_loss, global_step=step, tag='Loss/train')
             writer.add_scalar(scalar_value=vali_loss, global_step=step, tag='Loss/valid')
             adjust_learning_rate(model_optim, epoch + 1, self.args)
+            ''''
             # ==================保存训练过程中间结果===================================================
             # folder_path = './train_results/' + setting + '/'
             # if not os.path.exists(folder_path):
@@ -263,6 +264,7 @@ class Exp_Forecast(Exp_Basic):
             np.save(folder_path + '{0}mapes.npy'.format(epoch), mapes)
             np.save(folder_path + '{0}mspes.npy'.format(epoch), mspes)
             # ==================保存训练过程中间结果===================================================
+            '''
 
         best_model_path = path + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
