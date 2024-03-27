@@ -33,8 +33,8 @@ if __name__ == '__main__':
     # data loader
     parser.add_argument('--data', type=str, required=False, default='METR-LA', help='dataset type')
     parser.add_argument('--n_nodes', type=int, required=False, default=207, help='the nodes of dataset')
-    parser.add_argument('--root_path', type=str, default='./datasets/raw_data/', help='root path of the data file')
-    parser.add_argument('--data_path', type=str, default='METR-LA/METR-LA.h5', help='data file')
+    parser.add_argument('--root_path', type=str, default='/kaggle/input/', help='root path of the data file')
+    parser.add_argument('--data_path', type=str, default='metr-la-h5/METR-LA.h5', help='data file')
     parser.add_argument('--freq', type=str, default='t',
                         help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
     parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=1, help='data loader num workers')
     parser.add_argument('--itr', type=int, default=1, help='experiments times')
     parser.add_argument('--train_epochs', type=int, default=100, help='train epochs')
-    parser.add_argument('--batch_size', type=int, default=1, help='batch size of train input data')
+    parser.add_argument('--batch_size', type=int, default=16, help='batch size of train input data')
     parser.add_argument('--patience', type=int, default=100, help='early stopping patience')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='optimizer learning rate')
     parser.add_argument('--des', type=str, default='Exp', help='exp description')
