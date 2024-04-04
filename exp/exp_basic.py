@@ -1,17 +1,17 @@
 import os
 import torch
-from models import taformer
-from models import timeLinear, GWNET
+from models import timeLinear, GWNET, taformerPredict, taformerPretrain
 from step.step_arch import step
 
 class Exp_Basic(object):
     def __init__(self, args, cfg=None):
         self.args = args
         self.model_dict = {
-            'Taformer': taformer,
+            'Taformer': taformerPredict,
             'STEP': step,
             'timeLinear': timeLinear,
-            'GWNET': GWNET
+            'GWNET': GWNET,
+            'Pretrain': taformerPretrain
         }
         self.clip = 5
         self.device = self._acquire_device()

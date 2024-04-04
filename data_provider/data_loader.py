@@ -36,13 +36,13 @@ class Dataset_METRLA(Dataset):
 
     def __read_data__(self):
         data_file_path =os.path.join(self.root_path, self.data_path)
-        df_raw = pd.read_hdf(data_file_path)  # [time_len, node_num]
-        print(df_raw.shape)
-        print(df_raw.head())
-        print(df_raw.columns)
-        print(df_raw.index.values)
+        df_raw = pd.read_hdf(data_file_path)[:]  # [time_len, node_num]
+        # print(df_raw.shape)
+        # print(df_raw.head())
+        # print(df_raw.columns)
+        # print(df_raw.index.values)
         dates = df_raw.index.values.astype('datetime64')
-        print(dates)
+        # print(dates)
         num_train = round(len(df_raw) * 0.7)
         num_test = round(len(df_raw) * 0.2)
         num_vali = len(df_raw) - num_train - num_test
@@ -65,10 +65,10 @@ class Dataset_METRLA(Dataset):
         if self.time_to_feature == 0:
             num_samples, num_nodes = df_raw.shape
             time_ind = (df_raw.index.values - df_raw.index.values.astype("datetime64[D]")) / np.timedelta64(1, "D")
-            print('type(df.index.values):', type(df_raw.index.values))
-            print('df.index.values', df_raw.index.values)
-            print('df.index.values.astype("datetime64[D]")', df_raw.index.values.astype("datetime64[D]"))
-            print('time_ind', time_ind[:100])
+            # print('type(df.index.values):', type(df_raw.index.values))
+            # print('df.index.values', df_raw.index.values)
+            # print('df.index.values.astype("datetime64[D]")', df_raw.index.values.astype("datetime64[D]"))
+            # print('time_ind', time_ind[:100])
             time_in_day = np.tile(time_ind, [1, num_nodes, 1]).transpose((2, 1, 0))
             feature_list = [np.expand_dims(data, axis=-1), time_in_day]
             processed_data = np.concatenate(feature_list, axis=-1)
@@ -135,4 +135,4 @@ if __name__ == '__main__':
     print(type(seq_x[0, 0, :]))
     print(type(seq_x[0, :, :]))
     print(type(seq_x))
-    print(seq_x_mark)
+    # print(seq_x_mark)

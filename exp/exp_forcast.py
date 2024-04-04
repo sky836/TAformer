@@ -1,4 +1,6 @@
-from timm.utils import NativeScaler
+import pickle
+
+import scipy.sparse as sp
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
@@ -22,14 +24,33 @@ class Exp_Forecast(Exp_Basic):
         super(Exp_Forecast, self).__init__(args)
 
     def _build_model(self):
+        # 读取邻接矩阵
+        with open(r'datasets\METR-LA\adj_METR-LA.pkl', 'rb') as f:
+            pickle_data = pickle.load(f, encoding="latin1")
+        adj_mx = pickle_data[2]
+        adj = [self.asym_adj(adj_mx), self.asym_adj(np.transpose(adj_mx))]
+        # num_nodes = len(pickle_data[0])
+        supports = [torch.tensor(i).to(self.device) for i in adj]
         # .float(): 将模型的参数和张量转换为浮点数类型
-        model = self.model_dict[self.args.model].Model(self.args).float()
+        model = self.model_dict[self.args.model].Model(self.args, supports=supports, device=self.device).float()
+
+        best_model_path = 'checkpoints/Pretrain_METR-LA_sl288_pl12_el5_dl5_eh4_dh8_de96_ee96_2024_04_04_16_47_0' + '/' + 'checkpoint.pth'
+        msg = model.load_state_dict(torch.load(best_model_path), strict=False)
+        print(msg)
 
         if self.args.use_multi_gpu and self.args.use_gpu:
             # nn.DataParallel: 这是 PyTorch 中的一个模块，用于在多个 GPU 上并行地运行模型。
             # 它将输入模型封装在一个新的 DataParallel 模型中。
             model = nn.DataParallel(model, device_ids=self.args.device_ids)
         return model
+
+    def asym_adj(self, adj):
+        adj = sp.coo_matrix(adj)
+        rowsum = np.array(adj.sum(1)).flatten()
+        d_inv = np.power(rowsum, -1).flatten()
+        d_inv[np.isinf(d_inv)] = 0.
+        d_mat = sp.diags(d_inv)
+        return d_mat.dot(adj).astype(np.float32).todense()
 
     def _get_data(self, flag):
         data_set, data_loader = data_provider(self.args, flag)
@@ -227,7 +248,7 @@ class Exp_Forecast(Exp_Basic):
 
             writer.add_scalar(scalar_value=train_loss, global_step=step, tag='Loss/train')
             writer.add_scalar(scalar_value=vali_loss, global_step=step, tag='Loss/valid')
-            adjust_learning_rate(model_optim, epoch + 1, self.args)
+            # adjust_learning_rate(model_optim, epoch + 1, self.args)
             '''
             # ==================保存训练过程中间结果===================================================
             # folder_path = './train_results/' + setting + '/'

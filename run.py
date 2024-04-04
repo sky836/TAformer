@@ -6,6 +6,7 @@ from exp.exp_forcast import Exp_Forecast
 from exp.exp_STEP import Exp_STEP
 from exp.exp_timeLinear import Exp_TimeLinear
 from exp.exp_GWNET import Exp_GWNET
+from exp.exp_pretrain import Exp_Pretrain
 # from utils.print_args import print_args
 import random
 import numpy as np
@@ -24,17 +25,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Taformer')
 
     # basic config
-    parser.add_argument('--task_name', type=str, required=False, default='forcast',
-                        help='task name, options:[forcast, STEP, timeLinear, GWNET]')
+    parser.add_argument('--task_name', type=str, required=False, default='Pretrain',
+                        help='task name, options:[forcast, STEP, timeLinear, GWNET, Pretrain]')
     parser.add_argument('--is_training', type=int, required=False, default=1, help='status')
-    parser.add_argument('--model', type=str, required=False, default='Taformer',
-                        help='model name, options: [Taformer, STEP, timeLinear, GWNET]')
+    parser.add_argument('--model', type=str, required=False, default='Pretrain',
+                        help='model name, options: [Taformer, STEP, timeLinear, GWNET, Pretrain]')
 
     # data loader
     parser.add_argument('--data', type=str, required=False, default='METR-LA', help='dataset type')
     parser.add_argument('--n_nodes', type=int, required=False, default=207, help='the nodes of dataset')
-    parser.add_argument('--root_path', type=str, default='/kaggle/input/', help='root path of the data file')
-    parser.add_argument('--data_path', type=str, default='metr-la-h5/METR-LA.h5', help='data file')
+    parser.add_argument('--root_path', type=str, default='datasets/', help='root path of the data file')
+    parser.add_argument('--data_path', type=str, default='METR-LA/METR-LA.h5', help='data file')
     parser.add_argument('--freq', type=str, default='t',
                         help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
     parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
@@ -47,6 +48,12 @@ if __name__ == '__main__':
     parser.add_argument('--pred_len', type=int, default=12, help='prediction sequence length')
     parser.add_argument('--inverse', action='store_true', help='inverse output data', default=True)
 
+    # pretrain task
+    parser.add_argument('--mode', type=str, default='predict', help='choose the mode of model. options: [pretrain, predict]')
+    parser.add_argument('--num_nodes', type=int, default=207, help='the number of nodes of datasets')
+    parser.add_argument('--gcn_bool', type=bool, default=True, help='if use GCN in model or not')
+    parser.add_argument('--addaptadj', type=bool, default=True, help='if use adaptive adjacency matrices in GCN or not')
+
     # model define
     parser.add_argument('--enc_in', type=int, default=2, help='encoder input size')
     parser.add_argument('--dec_in', type=int, default=2, help='decoder input size')
@@ -56,8 +63,8 @@ if __name__ == '__main__':
     parser.add_argument('--decoder_embed_dim', type=int, default=96, help='dimension of decoder')
     parser.add_argument('--n_heads', type=int, default=4, help='num of heads')
     parser.add_argument('--decoder_num_heads', type=int, default=8, help='num of decoder heads')
-    parser.add_argument('--e_layers', type=int, default=6, help='num of encoder layers')
-    parser.add_argument('--d_layers', type=int, default=6, help='num of decoder layers')
+    parser.add_argument('--e_layers', type=int, default=5, help='num of encoder layers')
+    parser.add_argument('--d_layers', type=int, default=5, help='num of decoder layers')
     parser.add_argument('--d_ff', type=int, default=2048, help='dimension of fcn')
     parser.add_argument('--moving_avg', type=int, default=25, help='window size of moving average')
     parser.add_argument('--dropout', type=float, default=0.1, help='dropout')
@@ -69,11 +76,12 @@ if __name__ == '__main__':
     parser.add_argument('--label_patch_size', type=int, default=12, help='The size of one  decoder input patch')
     parser.add_argument('--time_channel', type=int, default=4, help='The channel of time inputs')
     parser.add_argument('--target_channel', type=int, default=1, help='The channel of target inputs')
+    parser.add_argument('--pretrain_layers', type=int, default=3, help='num of pretrain decoder layers')
 
     # optimization
     parser.add_argument('--num_workers', type=int, default=1, help='data loader num workers')
     parser.add_argument('--itr', type=int, default=1, help='experiments times')
-    parser.add_argument('--train_epochs', type=int, default=100, help='train epochs')
+    parser.add_argument('--train_epochs', type=int, default=1, help='train epochs')
     parser.add_argument('--batch_size', type=int, default=16, help='batch size of train input data')
     parser.add_argument('--patience', type=int, default=100, help='early stopping patience')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='optimizer learning rate')
@@ -108,6 +116,8 @@ if __name__ == '__main__':
         Exp = Exp_TimeLinear
     elif args.task_name == 'GWNET':
         Exp = Exp_GWNET
+    elif args.task_name == 'Pretrain':
+        Exp = Exp_Pretrain
     else:
         Exp = Exp_Forecast
 
@@ -140,7 +150,7 @@ if __name__ == '__main__':
 
             print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
             exp.train(setting)
-            if args.task_name != 'pretrain':
+            if args.task_name != 'Pretrain':
                 print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
                 exp.test(setting)
             torch.cuda.empty_cache()
@@ -160,13 +170,13 @@ if __name__ == '__main__':
             formatted_string,
             ii)
 
-        setting = 'TAformer_seqlen288'
+        setting = 'GWNET_METR-LA_bs16_gcn_epoch3_endfc_mutinodes'
 
         if args.task_name == 'STEP':
             exp = Exp(args=args, cfg=cfg)  # set experiments
         else:
             exp = Exp(args)
-        if args.task_name != 'pretrain':
+        if args.task_name != 'Pretrain':
             print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
             exp.test(setting, test=1)
         torch.cuda.empty_cache()
