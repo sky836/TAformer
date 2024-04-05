@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # data loader
     parser.add_argument('--data', type=str, required=False, default='METR-LA', help='dataset type')
     parser.add_argument('--n_nodes', type=int, required=False, default=207, help='the nodes of dataset')
-    parser.add_argument('--root_path', type=str, default='datasets/', help='root path of the data file')
+    parser.add_argument('--root_path', type=str, default='/kaggle/input/met-la/', help='root path of the data file')
     parser.add_argument('--data_path', type=str, default='METR-LA/METR-LA.h5', help='data file')
     parser.add_argument('--freq', type=str, default='t',
                         help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')

@@ -24,7 +24,7 @@ class Exp_Pretrain(Exp_Basic):
 
     def _build_model(self):
         # 读取邻接矩阵
-        with open(r'datasets\METR-LA\adj_METR-LA.pkl', 'rb') as f:
+        with open('/kaggle/input/met-la/METR-LA/adj_METR-LA.pkl', 'rb') as f:
             pickle_data = pickle.load(f, encoding="latin1")
         adj_mx = pickle_data[2]
         adj = [self.asym_adj(adj_mx), self.asym_adj(np.transpose(adj_mx))]
