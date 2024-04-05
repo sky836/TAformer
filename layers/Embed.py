@@ -56,7 +56,7 @@ class PositionalEncoding(nn.Module):
 
         Args:
             input_data (torch.tensor): input sequence with shape [B, N, P, d].
-            index (list or None): add positional embedding by index.
+            index (tensor or None): add positional embedding by index.
 
         Returns:
             torch.tensor: output sequence
@@ -68,7 +68,8 @@ class PositionalEncoding(nn.Module):
         if index is None:
             pe = self.position_embedding[:input_data.size(1), :].unsqueeze(0)
         else:
-            pe = self.position_embedding[index].unsqueeze(0)
+            index = index.view(batch_size*num_nodes, num_patches)
+            pe = self.position_embedding[index]
         input_data = input_data + pe
         input_data = self.dropout(input_data)
         # reshape
