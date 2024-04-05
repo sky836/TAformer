@@ -199,10 +199,11 @@ class Exp_Pretrain(Exp_Basic):
                     y_target = train_data.inverse_transform(y_target.reshape(-1, n_nodes)).reshape(batch_size,
                                                                                                    seq_len, n_nodes)
 
-                batch_x_mark = batch_x_mark.detach().cpu().numpy()
-                x_marks.append(batch_x_mark)
-                preds.append(target_outputs.detach().cpu().numpy())
-                trues.append(y_target.detach().cpu().numpy())
+                if epoch == self.args.train_epochs - 1:
+                    batch_x_mark = batch_x_mark.detach().cpu().numpy()
+                    x_marks.append(batch_x_mark)
+                    preds.append(target_outputs.detach().cpu().numpy())
+                    trues.append(y_target.detach().cpu().numpy())
 
                 if n_feats == 1:
                     target_outputs = target_outputs.unsqueeze(-1)
@@ -218,9 +219,11 @@ class Exp_Pretrain(Exp_Basic):
 
                 loss, loss_time, loss_target = self.forward_loss(y_time, y_target, time_outputs, target_outputs, mask_record)
                 train_loss.append(loss.item())
-                maes_time.append(loss_time.detach().item())
-                maes_target.append(loss_target.detach().item())
-                maes.append(loss.detach().item())
+
+                if epoch == self.args.train_epochs - 1:
+                    maes_time.append(loss_time.detach().item())
+                    maes_target.append(loss_target.detach().item())
+                    maes.append(loss.detach().item())
 
                 train_pbar.set_description(f'Epoch [{epoch + 1}/{self.args.train_epochs}]')
                 train_pbar.set_postfix({'loss': loss.detach().item()})

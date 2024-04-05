@@ -205,12 +205,14 @@ class Exp_Forecast(Exp_Basic):
                     batch_size, pred_len, n_nodes = input.shape
                     input = train_data.inverse_transform(input.reshape(-1, n_nodes)).reshape(batch_size,pred_len, n_nodes)
                 x_trues.append(input)
-                batch_x_mark = batch_x_mark.detach().cpu().numpy()
-                batch_y_mark = batch_y_mark.detach().cpu().numpy()
-                x_marks.append(batch_x_mark)
-                y_marks.append(batch_y_mark)
-                preds.append(outputs)
-                trues.append(y)
+
+                if epoch == self.args.train_epochs - 1:
+                    batch_x_mark = batch_x_mark.detach().cpu().numpy()
+                    batch_y_mark = batch_y_mark.detach().cpu().numpy()
+                    x_marks.append(batch_x_mark)
+                    y_marks.append(batch_y_mark)
+                    preds.append(outputs)
+                    trues.append(y)
 
                 if (i + 1) % 100 == 0:
                     mae, mse, rmse, mape, mspe = metric(outputs, y)
