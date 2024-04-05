@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from layers.Embed import PatchEmbedding, PositionalEncoding
-from taformerPredict import Encoder
+from models.taformerPredict import Encoder
 
 
 class Model(nn.Module):
