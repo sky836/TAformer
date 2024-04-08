@@ -34,7 +34,7 @@ class Exp_Forecast(Exp_Basic):
         # .float(): 将模型的参数和张量转换为浮点数类型
         model = self.model_dict[self.args.model].Model(self.args, supports=supports, device=self.device).float()
 
-        best_model_path = 'checkpoints/Pretrain_METR-LA_sl288_pl12_el5_dl5_eh4_dh8_de96_ee96_2024_04_04_16_47_0' + '/' + 'checkpoint.pth'
+        best_model_path = '/kaggle/input/pretrain-model' + '/' + 'checkpoint.pth'
         msg = model.load_state_dict(torch.load(best_model_path), strict=False)
         print(msg)
 
