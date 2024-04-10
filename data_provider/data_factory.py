@@ -1,9 +1,11 @@
 from torch.utils.data import DataLoader
 
-from data_provider.data_loader import Dataset_METRLA
+from data_provider.data_loader import Dataset_h5, Dataset_PEMS04
 
 data_dict = {
-    'METR-LA': Dataset_METRLA
+    'METR-LA': Dataset_h5,
+    'PEMS-BAY': Dataset_h5,
+    'PEMSO4': Dataset_PEMS04
 }
 
 

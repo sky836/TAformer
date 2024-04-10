@@ -25,17 +25,17 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Taformer')
 
     # basic config
-    parser.add_argument('--task_name', type=str, required=False, default='forcast',
+    parser.add_argument('--task_name', type=str, required=False, default='GWNET',
                         help='task name, options:[forcast, STEP, timeLinear, GWNET, Pretrain]')
     parser.add_argument('--is_training', type=int, required=False, default=1, help='status')
-    parser.add_argument('--model', type=str, required=False, default='Taformer',
+    parser.add_argument('--model', type=str, required=False, default='GWNET',
                         help='model name, options: [Taformer, STEP, timeLinear, GWNET, Pretrain]')
 
     # data loader
-    parser.add_argument('--data', type=str, required=False, default='METR-LA', help='dataset type')
-    parser.add_argument('--n_nodes', type=int, required=False, default=207, help='the nodes of dataset')
-    parser.add_argument('--root_path', type=str, default='/kaggle/input/met-la/', help='root path of the data file')
-    parser.add_argument('--data_path', type=str, default='METR-LA/METR-LA.h5', help='data file')
+    parser.add_argument('--data', type=str, required=False, default='PEMS-BAY', help='dataset type')
+    parser.add_argument('--n_nodes', type=int, required=False, default=325, help='the nodes of dataset')
+    parser.add_argument('--root_path', type=str, default='./datasets', help='root path of the data file')
+    parser.add_argument('--data_path', type=str, default='PEMS-BAY/PEMS-BAY.h5', help='data file')
     parser.add_argument('--freq', type=str, default='t',
                         help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
     parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
@@ -43,14 +43,14 @@ if __name__ == '__main__':
                         help='Adding time features to the data. options: [0, 1], 0 stands for 2 features. 1 stands for 4 features')
 
     # forecasting task
-    parser.add_argument('--seq_len', type=int, default=12*24, help='input sequence length')
+    parser.add_argument('--seq_len', type=int, default=12, help='input sequence length')
     parser.add_argument('--label_len', type=int, default=0, help='start token length')
     parser.add_argument('--pred_len', type=int, default=12, help='prediction sequence length')
     parser.add_argument('--inverse', action='store_true', help='inverse output data', default=True)
 
     # pretrain task
     parser.add_argument('--mode', type=str, default='predict', help='choose the mode of model. options: [pretrain, predict]')
-    parser.add_argument('--num_nodes', type=int, default=207, help='the number of nodes of datasets')
+    parser.add_argument('--num_nodes', type=int, default=325, help='the number of nodes of datasets')
     parser.add_argument('--gcn_bool', type=bool, default=True, help='if use GCN in model or not')
     parser.add_argument('--addaptadj', type=bool, default=True, help='if use adaptive adjacency matrices in GCN or not')
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=1, help='data loader num workers')
     parser.add_argument('--itr', type=int, default=1, help='experiments times')
     parser.add_argument('--train_epochs', type=int, default=100, help='train epochs')
-    parser.add_argument('--batch_size', type=int, default=16, help='batch size of train input data')
+    parser.add_argument('--batch_size', type=int, default=24, help='batch size of train input data')
     parser.add_argument('--patience', type=int, default=100, help='early stopping patience')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='optimizer learning rate')
     parser.add_argument('--des', type=str, default='Exp', help='exp description')
@@ -170,7 +170,7 @@ if __name__ == '__main__':
             formatted_string,
             ii)
 
-        setting = 'GWNET_METR-LA_bs16_gcn_epoch3_endfc_mutinodes'
+        setting = 'finetune_firsttime'
 
         if args.task_name == 'STEP':
             exp = Exp(args=args, cfg=cfg)  # set experiments

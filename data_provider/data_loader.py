@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import pandas as pd
-import torch
 
 # from sklearn.preprocessing import StandardScaler
 from utils.tools import StandardScaler
@@ -11,9 +10,9 @@ from torch.utils.data import Dataset
 from utils.timefeatures import time_features
 
 
-class Dataset_METRLA(Dataset):
+class Dataset_h5(Dataset):
     def __init__(self, root_path, data_path, flag='train', size=None, scale=True, time_to_feature=1):
-        super(Dataset_METRLA, self).__init__()
+        super(Dataset_h5, self).__init__()
         if size == None:
             self.seq_len = 12
             self.label_len = 1
@@ -35,7 +34,7 @@ class Dataset_METRLA(Dataset):
         self.__read_data__()
 
     def __read_data__(self):
-        data_file_path =os.path.join(self.root_path, self.data_path)
+        data_file_path = os.path.join(self.root_path, self.data_path)
         df_raw = pd.read_hdf(data_file_path)[:]  # [time_len, node_num]
         # print(df_raw.shape)
         # print(df_raw.head())
@@ -125,10 +124,126 @@ class Dataset_METRLA(Dataset):
     def inverse_transform(self, data):
         return self.scaler.inverse_transform(data)
 
+
+class Dataset_PEMS04(Dataset):
+    def __init__(self, root_path, data_path, flag='train', size=None, scale=True, time_to_feature=1, type='speed'):
+        super(Dataset_PEMS04, self).__init__()
+        if size == None:
+            self.seq_len = 12
+            self.label_len = 1
+            self.pred_len = 12
+        else:
+            self.seq_len = size[0]
+            self.label_len = size[1]
+            self.pred_len = size[2]
+        # init
+        assert flag in ['train', 'test', 'val']
+        type_map = {'train': 0, 'val': 1, 'test': 2}
+        self.type = type
+        self.set_type = type_map[flag]
+
+        self.scale = scale
+        self.time_to_feature = time_to_feature
+
+        self.root_path = root_path
+        self.data_path = data_path
+        self.__read_data__()
+
+    def __read_data__(self):
+        data_file_path = os.path.join(self.root_path, self.data_path)
+        data = np.load(data_file_path)['data']
+        if self.type == 'speed':
+            data = data[..., 2]
+        else:
+            data = data[..., 0]
+
+        num_train = round(len(data) * 0.7)
+        num_test = round(len(data) * 0.2)
+        num_vali = len(data) - num_train - num_test
+        border1s = [0, num_train - self.seq_len, len(data) - num_test - self.seq_len]
+        border2s = [num_train, num_train + num_vali, len(data)]
+        border1 = border1s[self.set_type]
+        border2 = border2s[self.set_type]
+
+        if self.scale:
+            train_data = data[border1s[0]:border2s[0]]
+            self.scaler = StandardScaler(mean=train_data.mean(), std=train_data.std())
+            print('mean:', train_data.mean())
+            print('std:', train_data.std())
+            # 对数据进行标准化
+            data = self.scaler.transform(data)
+        else:
+            data = data
+
+        num_samples, num_nodes = data.shape
+        if self.time_to_feature == 0:
+            feature_list = [np.expand_dims(data, axis=-1)]
+            steps_per_day = 288
+            # numerical time_of_day
+            tod = [i % steps_per_day / steps_per_day for i in range(data.shape[0])]
+            tod = np.array(tod) - 0.5
+            tod_tiled = np.tile(tod, [1, num_nodes, 1]).transpose((2, 1, 0))
+            feature_list.append(tod_tiled)
+            # numerical day_of_week
+            dow = [(i // steps_per_day) % 7 for i in range(data.shape[0])]
+            dow = np.array(dow) - 0.5
+            dow_tiled = np.tile(dow, [1, num_nodes, 1]).transpose((2, 1, 0))
+            feature_list.append(dow_tiled)
+            processed_data = np.concatenate(feature_list, axis=-1)
+        elif self.time_to_feature == 1:
+            steps_per_hour = 12
+            steps_per_day = 24
+            steps_per_month = 30
+            steps_per_year = 12
+            feature_list = [np.expand_dims(data, axis=-1)]
+            moh = [i % steps_per_hour / (steps_per_hour - 1) for i in range(data.shape[0])]
+            moh_tiled = np.tile(moh, [1, num_nodes, 1]).transpose((2, 1, 0)) - 0.5
+            hod = [(i // steps_per_hour) % steps_per_day / (steps_per_day - 1) for i in range(data.shape[0])]
+            hod_tiled = np.tile(hod, [1, num_nodes, 1]).transpose((2, 1, 0)) - 0.5
+            dom = [(i // (steps_per_hour*steps_per_day)) % steps_per_month / (steps_per_month - 1) for i in range(data.shape[0])]
+            dom_tiled = np.tile(dom, [1, num_nodes, 1]).transpose((2, 1, 0)) - 0.5
+            moy = [(i // (steps_per_hour*steps_per_day*steps_per_month)) % steps_per_year / (steps_per_year - 1) for i in range(data.shape[0])]
+            moy_tiled = np.tile(moy, [1, num_nodes, 1]).transpose((2, 1, 0)) - 0.5
+
+            feature_list.append(moh_tiled)
+            feature_list.append(hod_tiled)
+            feature_list.append(dom_tiled)
+            feature_list.append(moy_tiled)
+
+            processed_data = np.concatenate(feature_list, axis=-1)
+        else:
+            processed_data = data
+
+        self.data_x = processed_data[border1:border2]
+        self.data_y = processed_data[border1:border2]
+        self.data_stamp = processed_data[..., 1:]
+
+    def __getitem__(self, index):
+        s_begin = index
+        s_end = s_begin + self.seq_len
+        r_begin = s_end - self.label_len
+        r_end = r_begin + self.label_len + self.pred_len
+
+        seq_x = self.data_x[s_begin:s_end]
+        seq_y = self.data_y[r_begin:r_end]
+        seq_x_mark = self.data_stamp[s_begin:s_end]
+        seq_y_mark = self.data_stamp[r_begin:r_end]
+
+        return seq_x, seq_y, seq_x_mark, seq_y_mark
+
+    def __len__(self):
+        return len(self.data_x) - self.seq_len - self.pred_len - self.label_len + 1
+
+    def inverse_transform(self, data):
+        return self.scaler.inverse_transform(data)
+
+
 if __name__ == '__main__':
-    root_path = '../datasets/raw_data/'
-    data_path = 'METR-LA/METR-LA.h5'
-    data = Dataset_METRLA(root_path=root_path, data_path=data_path, time_to_feature=True)
+    root_path = '../datasets/'
+    data_path = 'PEMS04/PEMS04.npz'
+    # data_path = 'PEMS-BAY/PEMS-BAY.h5'
+    data = Dataset_PEMS04(root_path=root_path, data_path=data_path, time_to_feature=True)
+    # data = Dataset_h5(root_path=root_path, data_path=data_path, time_to_feature=True)
     seq_x, seq_y, seq_x_mark, seq_y_mark = data.__getitem__(0)
     print(seq_x.shape)
     print(type(seq_x[0, 0, 0]))

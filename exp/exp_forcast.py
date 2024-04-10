@@ -25,7 +25,7 @@ class Exp_Forecast(Exp_Basic):
 
     def _build_model(self):
         # 读取邻接矩阵
-        with open(r'/kaggle/input/met-la/METR-LA/adj_METR-LA.pkl', 'rb') as f:
+        with open(r'datasets/METR-LA/adj_METR-LA.pkl', 'rb') as f:
             pickle_data = pickle.load(f, encoding="latin1")
         adj_mx = pickle_data[2]
         adj = [self.asym_adj(adj_mx), self.asym_adj(np.transpose(adj_mx))]
@@ -34,7 +34,7 @@ class Exp_Forecast(Exp_Basic):
         # .float(): 将模型的参数和张量转换为浮点数类型
         model = self.model_dict[self.args.model].Model(self.args, supports=supports, device=self.device).float()
 
-        best_model_path = '/kaggle/input/pretrain-model' + '/' + 'checkpoint.pth'
+        best_model_path = 'checkpoints/Pretrain_firstTime' + '/' + 'checkpoint.pth'
         msg = model.load_state_dict(torch.load(best_model_path), strict=False)
         print(msg)
 

@@ -124,24 +124,22 @@ class Model(nn.Module):
 
 
 
-        # self.end_conv_1 = nn.Conv2d(in_channels=skip_channels,
-        #                           out_channels=end_channels,
-        #                           kernel_size=(1,1),
-        #                           bias=True)
-        #
-        # self.end_conv_2 = nn.Conv2d(in_channels=end_channels,
-        #                             out_channels=out_dim,
-        #                             kernel_size=(1,1),
-        #                             bias=True)
+        self.end_conv_1 = nn.Conv2d(in_channels=skip_channels,
+                                  out_channels=end_channels,
+                                  kernel_size=(1,1),
+                                  bias=True)
+
+        self.end_conv_2 = nn.Conv2d(in_channels=end_channels,
+                                    out_channels=out_dim,
+                                    kernel_size=(1,1),
+                                    bias=True)
 
         # self.end_fc1 = nn.Linear(skip_channels, end_channels)
         # self.end_fc2 = nn.Linear(end_channels, out_dim)
-        self.end_fc = nn.ModuleList()
-        for i in range(207):
-            self.end_fc.append(nn.Linear(skip_channels, out_dim))
+        # self.end_fc = nn.ModuleList()
+        # for i in range(207):
+        #     self.end_fc.append(nn.Linear(skip_channels, out_dim))
         self.receptive_field = receptive_field
-
-
 
     def forward(self, input):
         # [batch_size, seq_len, num_nodes, input_dim]
@@ -213,16 +211,16 @@ class Model(nn.Module):
         # (batch_size, skip_channels, num_nodes, 1)
         x = F.relu(skip)
         # (batch_size,  num_nodes, 1, skip_channels)
-        x = x.permute(0, 2, 3, 1)
-        # x = F.relu(self.end_conv_1(x))
-        # x = self.end_conv_2(x)
+        # x = x.permute(0, 2, 3, 1)
+        x = F.relu(self.end_conv_1(x))
+        x = self.end_conv_2(x)
         # x = F.relu(self.end_fc1(x))
         # x = self.end_fc2(x)
-        outputs = torch.zeros(x.shape[0], x.shape[1], x.shape[2], 12).to(x.device)
-        for i in range(207):
-            outputs[:, i, :, :] = self.end_fc[i](x[:, i, :, :])
-        x = outputs
-        x = x.permute(0, 3, 1, 2)
+        # outputs = torch.zeros(x.shape[0], x.shape[1], x.shape[2], 12).to(x.device)
+        # for i in range(207):
+        #     outputs[:, i, :, :] = self.end_fc[i](x[:, i, :, :])
+        # x = outputs
+        # x = x.permute(0, 3, 1, 2)
         return x
 
 
