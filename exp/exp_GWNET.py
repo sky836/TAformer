@@ -26,7 +26,7 @@ class Exp_GWNET(Exp_Basic):
 
     def _build_model(self):
         # 读取邻接矩阵
-        adj_path = r'datasets/PEMS-BAY/adj_PEMS-BAY.pkl'
+        adj_path = r'/kaggle/input/traffic-datasets/datasets/PEMS-BAY/adj_PEMS-BAY.pkl'
         with open(adj_path, 'rb') as f:
             pickle_data = pickle.load(f, encoding="latin1")
         adj_mx = pickle_data[2]
@@ -124,10 +124,10 @@ class Exp_GWNET(Exp_Basic):
         # dataloader = self._get_data(flag='train')
         # scaler = dataloader['scaler']
 
-        path = os.path.join(self.args.checkpoints, setting)
-        if not os.path.exists(path):
-            os.makedirs(path)
-        # path = '/kaggle/working/'  # 使用kaggle跑代码的路径
+        # path = os.path.join(self.args.checkpoints, setting)
+        # if not os.path.exists(path):
+        #     os.makedirs(path)
+        path = '/kaggle/working/'  # 使用kaggle跑代码的路径
 
         time_now = time.time()
 
@@ -145,10 +145,10 @@ class Exp_GWNET(Exp_Basic):
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
 
-        tensorboard_path = os.path.join('./runs/{}/'.format(setting))
-        if not os.path.exists(tensorboard_path):
-            os.makedirs(tensorboard_path)
-        # tensorboard_path = '/kaggle/working/'  # 使用kaggle跑实验时的路径
+        # tensorboard_path = os.path.join('./runs/{}/'.format(setting))
+        # if not os.path.exists(tensorboard_path):
+        #     os.makedirs(tensorboard_path)
+        tensorboard_path = '/kaggle/working/'  # 使用kaggle跑实验时的路径
         writer = SummaryWriter(log_dir=tensorboard_path)
 
         step = 0
