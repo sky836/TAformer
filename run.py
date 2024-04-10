@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # basic config
     parser.add_argument('--task_name', type=str, required=False, default='GWNET',
                         help='task name, options:[forcast, STEP, timeLinear, GWNET, Pretrain]')
-    parser.add_argument('--is_training', type=int, required=False, default=1, help='status')
+    parser.add_argument('--is_training', type=int, required=False, default=0, help='status')
     parser.add_argument('--model', type=str, required=False, default='GWNET',
                         help='model name, options: [Taformer, STEP, timeLinear, GWNET, Pretrain]')
 

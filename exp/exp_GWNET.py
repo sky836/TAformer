@@ -238,7 +238,9 @@ class Exp_GWNET(Exp_Basic):
         test_data, test_loader = self._get_data(flag='test')
         if test:
             print('loading model')
-            self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint.pth')))
+            # path = os.path.join('./checkpoints/' + setting, 'checkpoint.pth')
+            path = '/kaggle/input/gwnet-models/checkpoint.pth'
+            self.model.load_state_dict(torch.load(path))
 
         preds = []
         trues = []
@@ -319,10 +321,10 @@ class Exp_GWNET(Exp_Basic):
         print('test shape:', preds.shape, trues.shape, x_trues.shape, x_marks.shape, y_marks.shape, maes.shape, mses.shape, rmses.shape, mspes.shape, mapes.shape)
 
         # result save
-        folder_path = './test_results/' + setting + '/'
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        # folder_path = '/kaggle/working/'  # 使用kaggle跑代码时的输出路径
+        # folder_path = './test_results/' + setting + '/'
+        # if not os.path.exists(folder_path):
+        #     os.makedirs(folder_path)
+        folder_path = '/kaggle/working/'  # 使用kaggle跑代码时的输出路径
 
         mae, mse, rmse, mape, mspe = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))
